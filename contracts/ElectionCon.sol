@@ -2,9 +2,9 @@ pragma solidity >=0.4.21 <0.9.0;
 
 contract ElectionCon {
     address public superAdmin;
-    uint256 electionCount;
-    uint256 voterCount;
-    uint256 accountsCount;
+    uint256 public electionCount;
+    uint256 public voterCount;
+    uint256 public accountsCount;
 
     constructor() public {
         superAdmin = msg.sender;
@@ -30,10 +30,11 @@ contract ElectionCon {
     struct Election {
         uint256 electionId;
         string electionTitle;
-        string orgTitle;
         string electionCanOne;
+        string electionCanOneHash;
         uint256 electionCanOneCount;
         string electionCanTwo;
+        string electionCanTwoHash;
         uint256 electionCanTwoCount;
         uint256 voterCount;
         uint256 votedCount;
@@ -66,18 +67,20 @@ contract ElectionCon {
     //FUNCTIONS FOR ADD
     function addElection(
         string memory _electionTitle,
-        string memory _orgTitle,
         string memory _electionCanOne,
-        string memory _electionCanTwo
+        string memory _electionCanTwo,
+        string memory _electionCanOneHash,
+        string memory _electionCanTwoHash
     ) public onlyAdmin {
         Election memory newElection =
             Election({
                 electionId: electionCount,
                 electionTitle: _electionTitle,
-                orgTitle: _orgTitle,
                 electionCanOne: _electionCanOne,
+                electionCanOneHash: _electionCanOneHash,
                 electionCanOneCount: 0,
                 electionCanTwo: _electionCanTwo,
+                electionCanTwoHash: _electionCanTwoHash,
                 electionCanTwoCount: 0,
                 voterCount: 0,
                 votedCount: 0,
@@ -160,4 +163,25 @@ contract ElectionCon {
         electionDetails[_electionId].end = true;
         electionDetails[_electionId].start = false;
     }
+
+
+    //FUNCTION FOR GETS
+    function getElectionTitle(uint256 _electionId) public view returns (string memory) {
+        return electionDetails[_electionId].electionTitle;
+    }
+    
+    function getVoterName(address _voterAddress) public view returns (string memory) {
+        return accountsDetails[_voterAddress].accountName;
+    }
+
+    string ipfsHash;
+
+    function set(string memory x) public {
+        ipfsHash = x;
+    }
+
+    function get() public view returns (string memory) {
+        return ipfsHash;
+    }
+
 }
