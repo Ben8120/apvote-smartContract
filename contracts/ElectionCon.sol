@@ -2,6 +2,7 @@ pragma solidity >=0.4.21 <0.9.0;
 
 contract ElectionCon {
     address public superAdmin;
+    uint256 public adminCount;
     uint256 public electionCount;
     uint256 public voterCount;
     uint256 public accountsCount;
@@ -11,6 +12,8 @@ contract ElectionCon {
         electionCount = 0;
         voterCount = 0;
         accountsCount = 0;
+
+        adminCount = 0;
     }
 
     function getAdmin() public view returns (address) {
@@ -62,6 +65,12 @@ contract ElectionCon {
         string accountEmail;
     }
     mapping(address => Accounts) public accountsDetails;
+
+    struct Admins {
+        uint256 adminId;
+        address adminAddress;
+    }
+    mapping(address => Admins) public adminDetails;
 
 
     //FUNCTIONS FOR ADD
@@ -127,6 +136,16 @@ contract ElectionCon {
         accountsCount += 1;
     }
 
+    function addAdmin(address _adminAddress) public {
+        Admins memory newAdmin = 
+            Admins({
+                adminId: adminCount,
+                adminAddress: _adminAddress
+            });
+        adminDetails[_adminAddress] = newAdmin;
+        adminCount += 1;
+    }
+
 
     //FUNCTION FOR VOTES
     function verifyVoter(
@@ -172,16 +191,6 @@ contract ElectionCon {
     
     function getVoterName(address _voterAddress) public view returns (string memory) {
         return accountsDetails[_voterAddress].accountName;
-    }
-
-    string ipfsHash;
-
-    function set(string memory x) public {
-        ipfsHash = x;
-    }
-
-    function get() public view returns (string memory) {
-        return ipfsHash;
     }
 
 }
