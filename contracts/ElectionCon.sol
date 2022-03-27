@@ -2,18 +2,16 @@ pragma solidity >=0.4.21 <0.9.0;
 
 contract ElectionCon {
     address public superAdmin;
-    uint256 public adminCount;
     uint256 public electionCount;
     uint256 public voterCount;
     uint256 public accountsCount;
+    
 
     constructor() public {
         superAdmin = msg.sender;
         electionCount = 0;
         voterCount = 0;
         accountsCount = 0;
-
-        adminCount = 0;
     }
 
     function getAdmin() public view returns (address) {
@@ -53,6 +51,7 @@ contract ElectionCon {
         bool isRegistered;
         bool isVerified;
         bool hasVoted;
+        uint timeVoted;
     }
     mapping(uint256 => Voter) public voterDetails;
 
@@ -70,7 +69,7 @@ contract ElectionCon {
         uint256 adminId;
         address adminAddress;
     }
-    mapping(address => Admins) public adminDetails;
+    mapping(uint256 => Admins) public adminDetails;
 
 
     //FUNCTIONS FOR ADD
@@ -80,7 +79,7 @@ contract ElectionCon {
         string memory _electionCanTwo,
         string memory _electionCanOneHash,
         string memory _electionCanTwoHash
-    ) public onlyAdmin {
+    ) public onlyAdmin normalAdmin(msg.sender) {
         Election memory newElection =
             Election({
                 electionId: electionCount,
@@ -111,7 +110,8 @@ contract ElectionCon {
                 registeredElection: _registeredElection,
                 isRegistered: true,
                 isVerified: false,
-                hasVoted: false
+                hasVoted: false,
+                timeVoted: 0
             });
         voterDetails[voterCount] = newVoter;
         voterCount += 1;
@@ -136,22 +136,12 @@ contract ElectionCon {
         accountsCount += 1;
     }
 
-    function addAdmin(address _adminAddress) public {
-        Admins memory newAdmin = 
-            Admins({
-                adminId: adminCount,
-                adminAddress: _adminAddress
-            });
-        adminDetails[_adminAddress] = newAdmin;
-        adminCount += 1;
-    }
-
 
     //FUNCTION FOR VOTES
     function verifyVoter(
         uint256 _voterId,
         uint256 _electionId
-    ) public onlyAdmin {
+    ) public onlyAdmin normalAdmin(msg.sender) {
         /*require that both exists*/
         voterDetails[_voterId].isVerified = true;
         electionDetails[_electionId].voterCount += 1;
@@ -169,16 +159,17 @@ contract ElectionCon {
         } else {}
         electionDetails[_electionId].votedCount += 1;
         voterDetails[_voterId].hasVoted = true;
+        voterDetails[_voterId].timeVoted = block.timestamp;
     }
 
     
     //FUNCTION FOR ELECTIONS
-    function startElection(uint256 _electionId) public onlyAdmin {
+    function startElection(uint256 _electionId) public onlyAdmin normalAdmin(msg.sender) {
         electionDetails[_electionId].start = true;
         electionDetails[_electionId].end = false;
     }
 
-    function endElection(uint256 _electionId) public onlyAdmin {
+    function endElection(uint256 _electionId) public onlyAdmin normalAdmin(msg.sender) {
         electionDetails[_electionId].end = true;
         electionDetails[_electionId].start = false;
     }
@@ -191,6 +182,33 @@ contract ElectionCon {
     
     function getVoterName(address _voterAddress) public view returns (string memory) {
         return accountsDetails[_voterAddress].accountName;
+    }
+
+
+    //TEST ADMINs
+    address[] public admins;
+
+    function addAdmin(address _adminAddress) public onlyAdmin {
+        admins.push(_adminAddress);
+    }
+
+    function getAdminLength() public view returns (uint256) {
+        return admins.length;
+    }
+
+    function removeAdmin(uint256 _adminIndex) public {
+        delete admins[_adminIndex];
+    }
+
+    modifier normalAdmin(address _address) {
+        bool isAdmin = false;
+        for (uint i = 0; i < admins.length; i++) {
+            if (_address == admins[i]){
+                isAdmin = true;
+            }
+        }
+        require(isAdmin == true);
+        _;
     }
 
 }
